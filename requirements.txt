@@ -1,0 +1,7 @@
+numpy
+pandas
+pickle
+healpy
+torch>=1.2
+tqdm
+matplotlib
