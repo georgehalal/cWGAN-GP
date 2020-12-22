@@ -11,7 +11,11 @@ Since each location in the sky is surveyed multiple times by telescopes producin
 * We use 10,000 galaxies for validation.
 
 ## Requirements
-`pip install -r requirements.txt`
+```bash
+git clone https://github.com/georgehalal/cWGAN-GP.git
+cd cWGAN-GP/
+pip install -r requirements.txt
+```
 
 ## Code Layout
 * `preprocess.py` -
