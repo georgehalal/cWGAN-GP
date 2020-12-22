@@ -25,4 +25,4 @@ pip install -r requirements.txt
 * `train_and_evaluate.py` - train the model on the training dataset, evaluating it along the way on the validation dataset
 * `search_hyperparams.py` - submit a different job for each set of hyperparameters to search for the best ones.
 * `generate.py` - use the generator model to generate a distribution of galaxy magnitudes to compare with the true distribution.
-* `utils.py` - utility functions for handling hyperparams/logging/storing mode
+* `utils.py` - contains functions for handling hyperparameters, logging information, and storing model states
