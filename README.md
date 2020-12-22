@@ -18,11 +18,11 @@ pip install -r requirements.txt
 ```
 
 ## Code Layout
-* `preprocess.py` -
-* `model/cWGAN-GP.py` - specifies the neural network architecture, the loss function and evaluation metrics
-* `model/dataloader.py` - specifies how the data should be fed to the network
-* `train_and_evaluate.py` - contains the main loop for training and evaluating the model
-* `search_hyperparams.py` - 
-* `generate.py` - 
-* `tests/truecondW1/params.json` - 
+* `preprocess.py` - prepare the raw data into a format useful for the model.
+* `model/cWGAN-GP.py` - define the model architecture, the loss function, and the evaluation metrics.
+* `model/dataloader.py` - specify how the data should be fed into the model.
+* `tests/truecondW1/params.json` - an example directory with a JSON file containing the model and training hyperparameters. Similar directories can be created there containing different hyperparameters. These directories also store the logging info and plots corresponding to the given set of hyperparameters.
+* `train_and_evaluate.py` - train the model on the training dataset, evaluating it along the way on the validation dataset
+* `search_hyperparams.py` - submit a different job for each set of hyperparameters to search for the best ones.
+* `generate.py` - use the generator model to generate a distribution of galaxy magnitudes to compare with the true distribution.
 * `utils.py` - utility functions for handling hyperparams/logging/storing mode
