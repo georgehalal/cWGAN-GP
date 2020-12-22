@@ -7,11 +7,18 @@ However, we can only run the full Balrog pipeline on a few realizations of simul
 Since each location in the sky is surveyed multiple times by telescopes producing a stack of images of the same point, different statistics are developed to characterize these observations as a function of position in the sky. We therefore have sky maps of these statistics, including the fluctuation of sky brightness and the blurriness of point-like sources at each point for different passbands (filters). The passbands we consider are r, i, and z, from bluer to redder. We also have the “magnitude," a measure of brightness, for galaxies in each of these passbands. Therefore, for each passband and location in the sky, we use two of these observing conditions from the sky maps and the true galaxy magnitude from deep-field surveys as the input in the additional conditioning layers of the cWGAN-GP. We train it on data from Balrog to generate observed galaxy magnitudes in wide-field surveys for the same passbands at the same location in the sky. cWGAN-GPs are useful in this case because for a given set of inputs, the outputs are not deterministic and could vary based on an unknown distribution which a generative model can learn.
 
 ## Dataset
-Our training dataset consists of ∼1.7 million galaxies. We use 10,000 galaxies for validation. The input true galaxy magnitudes and sky observing conditions are normalized.
+* Our training dataset consists of ∼1.7 million galaxies.
+* We use 10,000 galaxies for validation.
+
+## Requirements
+`pip install -r requirements.txt`
 
 ## Code Layout
-* `model/net.py` - specifies the neural network architecture, the loss function and evaluation metrics
+* `preprocess.py` -
+* `model/cWGAN-GP.py` - specifies the neural network architecture, the loss function and evaluation metrics
 * `model/dataloader.py` - specifies how the data should be fed to the network
-* `train.py` - contains the main training loop
-* `evaluate.py` - contains the main loop for evaluating the model
+* `train_and_evaluate.py` - contains the main loop for training and evaluating the model
+* `search_hyperparams.py` - 
+* `generate.py` - 
+* `tests/truecondW1/params.json` - 
 * `utils.py` - utility functions for handling hyperparams/logging/storing mode
