@@ -10,7 +10,7 @@ Since each location in the sky is surveyed multiple times by telescopes producin
 * Our training dataset consists of ∼1.7 million galaxies.
 * We use 10,000 galaxies for validation.
 
-## Requirements
+## Setup
 ```bash
 git clone https://github.com/georgehalal/cWGAN-GP.git
 cd cWGAN-GP/
