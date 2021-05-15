@@ -26,3 +26,6 @@ pip install -r requirements.txt
 * `search_hyperparams.py` - submit a different job for each set of hyperparameters to search for the best ones.
 * `generate.py` - use the generator model to generate a distribution of galaxy magnitudes to compare with the true distribution.
 * `utils.py` - contains functions for handling hyperparameters, logging information, and storing model states.
+
+## Performance
+![perf](https://github.com/georgehalal/cWGAN-GP/blob/master/img/cWGAN-GP_performance.png)
