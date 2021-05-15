@@ -28,4 +28,4 @@ pip install -r requirements.txt
 * `utils.py` - contains functions for handling hyperparameters, logging information, and storing model states.
 
 ## Performance
-![perf](https://github.com/georgehalal/cWGAN-GP/blob/master/img/cWGAN-GP_performance.png)
+![perf](https://github.com/georgehalal/cWGAN-GP/blob/main/img/cWGAN-GP_performance.png)
