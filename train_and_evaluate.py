@@ -22,9 +22,12 @@ from model.dataloader import FluxDataset as FD
 
 plt.rcParams.update({'font.size': 15, 'figure.figsize': (10, 6)})
 parser = argparse.ArgumentParser()
-parser.add_argument('--test_dir', default='tests/truecondW1', help="Directory containing params.json")
-parser.add_argument('--gen_restore_file', default=None, help="Optional, name of the file in --test_dir containing generator weights to reload before training")
-parser.add_argument('--disc_restore_file', default=None, help="Optional, name of the file in --test_dir containing discriminator weights to reload before training")
+parser.add_argument('--test_dir', default='tests/truecondW1', \
+                    help="Directory containing params.json")
+parser.add_argument('--gen_restore_file', default=None, help=\
+                    "Optional, name of the file in --test_dir containing generator weights to reload before training")
+parser.add_argument('--disc_restore_file', default=None, help=\
+                    "Optional, name of the file in --test_dir containing discriminator weights to reload before training")
 
 
 def calc_gradient_penalty(params, d_model, obs_mag, g_out, conditions, true_mag):
@@ -53,7 +56,9 @@ def calc_gradient_penalty(params, d_model, obs_mag, g_out, conditions, true_mag)
     if params.cuda:
         ones = ones.cuda(non_blocking=True)
 
-    gradients = grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=ones, create_graph=True, retain_graph=True, only_inputs=True)[0]
+    gradients = grad(outputs=disc_interpolates, inputs=interpolates, \
+                     grad_outputs=ones, create_graph=True, retain_graph=True, \
+                     only_inputs=True)[0]
 
     gradients = gradients.view(gradients.size(0), -1)                              
     gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10
@@ -92,7 +97,8 @@ def disc_train_step(params, d_model, g_model, d_optimizer, true_mag, obs_mag, co
     d_generatedout = d_model(g_out, conditions, true_mag).squeeze()
     gen_cost = d_generatedout.mean()
 
-    gradient_penalty = calc_gradient_penalty(params, d_model, obs_mag, g_out, conditions, true_mag)
+    gradient_penalty = calc_gradient_penalty(params, d_model, obs_mag, \
+                                             g_out, conditions, true_mag)
 
     d_cost = gen_cost - true_cost + gradient_penalty
     d_cost.backward()
@@ -100,7 +106,8 @@ def disc_train_step(params, d_model, g_model, d_optimizer, true_mag, obs_mag, co
     return d_cost.item()
 
 
-def gen_train_step(params, metrics, d_model, g_model, g_optimizer, true_mag, obs_mag, conditions):
+def gen_train_step(params, metrics, d_model, g_model, g_optimizer, true_mag,\
+                   obs_mag, conditions):
     """One training step of the Generator model
 
     Args:
@@ -156,24 +163,29 @@ def train(g_model, d_model, g_optimizer, d_optimizer, dataloader, metrics, param
     with tqdm(total=len(dataloader)) as t:
         for i, (conditions_batch, properties_batch) in enumerate(dataloader):
             
-            conditions_batch, properties_batch = Variable(conditions_batch[0]), Variable(properties_batch[0])
+            conditions_batch, properties_batch = Variable(conditions_batch[0]), \
+                Variable(properties_batch[0])
             
             if params.cuda:
-                conditions_batch, properties_batch = conditions_batch.cuda(non_blocking=True), properties_batch.cuda(non_blocking=True)
+                conditions_batch, properties_batch = conditions_batch.cuda(non_blocking=True),\
+                    properties_batch.cuda(non_blocking=True)
 
             true_batch, obs_batch = properties_batch[:,:3], properties_batch[:,3:]
 
             # Step once through the Discriminator training process
             for p in d_model.parameters():
                 p.requires_grad_(True)
-            d_loss = disc_train_step(params, d_model, g_model, d_optimizer, true_batch, obs_batch, conditions_batch)
+            d_loss = disc_train_step(params, d_model, g_model, d_optimizer, true_batch, \
+                                     obs_batch, conditions_batch)
             
             # For every 5 Discriminator training steps, step once through the 
             # Generator training process
             if i % 5 == 0:
                 for p in d_model.parameters():
                     p.requires_grad_(False)
-                g_loss, mse_loss = gen_train_step(params, metrics, d_model, g_model, g_optimizer, true_batch, obs_batch, conditions_batch)
+                g_loss, mse_loss = gen_train_step(params, metrics, d_model, g_model, \
+                                                  g_optimizer, true_batch, obs_batch, \
+                                                  conditions_batch)
 
             if i % params.save_summary_steps == 0:
                 summary_batch = {'MSE': mse_loss}
@@ -219,7 +231,10 @@ def evaluate(g_model, d_model, metrics, halves, val_cond, val_true, val_obs, par
     g_out = g_model(noise, val_cond, val_true)
     d_out = d_model(g_out, val_cond, val_true).squeeze().cpu()
 
-    metrics_mean = {'d_MSE': metrics['MSE'](d_out, halves), 'd_Var': metrics['VAR'](d_out), 'MSE': metrics['MSE'](g_out.cpu(), val_obs), 'main_metric': metrics['main'](d_out, halves, val_cond.shape[0])}
+    metrics_mean = {'d_MSE': metrics['MSE'](d_out, halves), \
+                    'd_Var': metrics['VAR'](d_out), \
+                    'MSE': metrics['MSE'](g_out.cpu(), val_obs), \
+                    'main_metric': metrics['main'](d_out, halves, val_cond.shape[0])}
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
     return metrics_mean
@@ -244,7 +259,9 @@ def make_plot(p, name, y, test_dir):
     plt.savefig(os.path.join(test_dir, name+'.png'))
 
 
-def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond, val_true, val_obs, g_optimizer, d_optimizer, metrics, params, test_dir, gen_restore_file=None, disc_restore_file=None):
+def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond, \
+                       val_true, val_obs, g_optimizer, d_optimizer, metrics, \
+                       params, test_dir, gen_restore_file=None, disc_restore_file=None):
     """Train the model, evaluate the metrics, and save some plots.
 
     Args:
@@ -286,9 +303,11 @@ def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond, val
     for epoch in range(params.num_epochs):
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
-        train_metrics = train(g_model, d_model, g_optimizer, d_optimizer, train_dataloader, metrics, params)
+        train_metrics = train(g_model, d_model, g_optimizer, d_optimizer, \
+                              train_dataloader, metrics, params)
 
-        val_metrics = evaluate(g_model, d_model, metrics, halves, val_cond, val_true, val_obs, params)
+        val_metrics = evaluate(g_model, d_model, metrics, halves, val_cond, \
+                               val_true, val_obs, params)
 
         train_MSEs.append(train_metrics['MSE'].item())
         g_losses.append(train_metrics['g_loss'].item())
@@ -302,8 +321,12 @@ def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond, val
             val_main = val_metrics['main_metric']
             is_best = val_main <= best_val
 
-            utils.save_checkpoint({'epoch': epoch + 1, 'state_dict': g_model.state_dict(), 'optim_dict': g_optimizer.state_dict()}, is_best=is_best, checkpoint=test_dir, model='gen')
-            utils.save_checkpoint({'epoch': epoch + 1, 'state_dict': d_model.state_dict(), 'optim_dict': d_optimizer.state_dict()}, is_best=is_best, checkpoint=test_dir, model='disc')
+            utils.save_checkpoint({'epoch': epoch + 1, 'state_dict': g_model.state_dict(), \
+                                   'optim_dict': g_optimizer.state_dict()}, is_best=is_best, \
+                                  checkpoint=test_dir, model='gen')
+            utils.save_checkpoint({'epoch': epoch + 1, 'state_dict': d_model.state_dict(), \
+                                   'optim_dict': d_optimizer.state_dict()}, is_best=is_best, \
+                                  checkpoint=test_dir, model='disc')
 
             if is_best:
                 logging.info("- Found new best validation metric")
@@ -321,7 +344,8 @@ def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond, val
     make_plot(d_MSEs, "d_MSEs", "MSE(disc. out, 0.5)", test_dir)
     make_plot(d_Vars, "d_Vars", "Var(disc. out)", test_dir)
     make_plot(val_MSEs, "val_MSEs", "Val MSE(gen. out, truth)", test_dir)
-    make_plot(main_metrics, "main_metrics", "N*MSE(disc. out, 0.5)/(N+1) + Var(disc. out)/(N+1)", test_dir)
+    make_plot(main_metrics, "main_metrics", "N*MSE(disc. out, 0.5)/(N+1) + Var(disc. out)/(N+1)", \
+              test_dir)
 
 
 if __name__ == '__main__':
@@ -344,8 +368,10 @@ if __name__ == '__main__':
     logging.info("Loading the datasets...")
 
     # The batch size is set to 1 here because the dataloader already splits the data up into batches
-    train_dl = DataLoader(FD("train", params.batch_size), batch_size=1, shuffle=True, num_workers=params.num_workers, pin_memory=params.cuda)
-    val_dl = DataLoader(FD("val", 10000), batch_size=1, shuffle=False, num_workers=params.num_workers, pin_memory=params.cuda) 
+    train_dl = DataLoader(FD("train", params.batch_size), batch_size=1, shuffle=True, \
+                          num_workers=params.num_workers, pin_memory=params.cuda)
+    val_dl = DataLoader(FD("val", 10000), batch_size=1, shuffle=False, num_workers= \
+                        params.num_workers, pin_memory=params.cuda) 
     val_cond, val_out = next(iter(val_dl))
     val_out, val_cond = Variable(val_out[0]), Variable(val_cond[0])
     val_true, val_obs = val_out[:,:3].contiguous(), val_out[:,3:].contiguous()
@@ -366,6 +392,8 @@ if __name__ == '__main__':
     metrics = cgan.metrics
 
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
-    train_and_evaluate(g_model, d_model, train_dl, halves, val_cond, val_true, val_obs, g_optimizer, d_optimizer, metrics, params, args.test_dir, args.gen_restore_file, args.disc_restore_file)
+    train_and_evaluate(g_model, d_model, train_dl, halves, val_cond, val_true, \
+                       val_obs, g_optimizer, d_optimizer, metrics, params, args.test_dir, \
+                       args.gen_restore_file, args.disc_restore_file)
 
 
