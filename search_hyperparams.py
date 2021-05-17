@@ -7,8 +7,10 @@ import utils
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--parent_dir', default='tests/learning_rate', help='Directory containing params.json')
-parser.add_argument('--data_dir', default='data', help="Directory containing the dataset")
+parser.add_argument('--parent_dir', default='tests/learning_rate', \
+                    help='Directory containing params.json')
+parser.add_argument('--data_dir', default='data', \
+                    help="Directory containing the dataset")
 
 
 def make_sub_file(name, test_dir, data_dir):
@@ -34,7 +36,9 @@ def make_sub_file(name, test_dir, data_dir):
     sbatch_file.write("#SBATCH --mem=32GB \n")
     sbatch_file.write("#SBATCH --output=%s \n"%slurm_out)
     sbatch_file.write("\n")
-    sbatch_file.write("python3 train.py --test_dir {test_dir} --data_dir {data_dir} >& {slurm_log} \n".format(test_dir=test_dir, data_dir=data_dir, slurm_log=slurm_log) )
+    sbatch_file.write("python3 train.py --test_dir {test_dir} --data_dir \
+                       {data_dir} >& {slurm_log} \n".format(test_dir=test_dir, \
+                       data_dir=data_dir, slurm_log=slurm_log) )
     sbatch_file.write("\n")
     sbatch_file.close()
 
@@ -54,7 +58,8 @@ def submit(name, test_dir):
 if __name__ == "__main__":
     args = parser.parse_args()
     json_path = os.path.join(args.parent_dir, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
+    assert os.path.isfile(json_path), "No json configuration file found \
+                                       at {}".format(json_path)
     params = utils.Params(json_path)
 
     # Hyperparameters to try
