@@ -23,17 +23,26 @@ class Generator(nn.Module):
             self.func_params = (True)
             self.act_func = nn.ELU
 
-        self.noise = nn.Sequential(nn.Linear(params.z_dim, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.noise = nn.Sequential(nn.Linear(params.z_dim, params.num_nodes), \
+                                   self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                   self.act_func(*self.func_params))
 
-        self.cond = nn.Sequential(nn.Linear(6, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.cond = nn.Sequential(nn.Linear(6, params.num_nodes), \
+                                  self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                  self.act_func(*self.func_params))
 
-        self.true = nn.Sequential(nn.Linear(3, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.true = nn.Sequential(nn.Linear(3, params.num_nodes), \
+                                  self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                  self.act_func(*self.func_params))
 
-        self.out = nn.Sequential(nn.Linear(params.num_nodes*3//2, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes), self.act_func(*self.func_params),
+        self.out = nn.Sequential(nn.Linear(params.num_nodes*3//2, \
+                                           params.num_nodes), \
+                                 self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes), \
+                                 self.act_func(*self.func_params),
             nn.Linear(params.num_nodes, 3))
     
     def forward(self, z, y, t):
@@ -71,17 +80,25 @@ class Discriminator(nn.Module):
             self.func_params = (True)
             self.act_func = nn.ELU
         
-        self.genout = nn.Sequential(nn.Linear(3, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.genout = nn.Sequential(nn.Linear(3, params.num_nodes), \
+                                    self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                    self.act_func(*self.func_params))
         
-        self.cond = nn.Sequential(nn.Linear(6, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.cond = nn.Sequential(nn.Linear(6, params.num_nodes), \
+                                  self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                  self.act_func(*self.func_params))
 
-        self.true = nn.Sequential(nn.Linear(3, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes//2), self.act_func(*self.func_params))
+        self.true = nn.Sequential(nn.Linear(3, params.num_nodes), \
+                                  self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes//2), \
+                                  self.act_func(*self.func_params))
 
-        self.out = nn.Sequential(nn.Linear(params.num_nodes*3//2, params.num_nodes), self.act_func(*self.func_params),
-            nn.Linear(params.num_nodes, params.num_nodes), self.act_func(*self.func_params),
+        self.out = nn.Sequential(nn.Linear(params.num_nodes*3//2, params.num_nodes), \
+                                 self.act_func(*self.func_params),
+            nn.Linear(params.num_nodes, params.num_nodes), \
+                                 self.act_func(*self.func_params),
             nn.Linear(params.num_nodes, 1))
       
     def forward(self, x, y, t):
