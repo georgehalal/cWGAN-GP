@@ -19,9 +19,12 @@ from  model.dataloader import FluxDataset as FD
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', default='data', help="Directory containing the dataset")
-parser.add_argument('--test_dir', default='tests/truecondW1', help="Directory containing params.json")
-parser.add_argument('--restore_file', default='g_best', help="name of the file in --test_dir containing weights to load")
+parser.add_argument('--data_dir', default='data', \
+                    help="Directory containing the dataset")
+parser.add_argument('--test_dir', default='tests/truecondW1', \
+                    help="Directory containing params.json")
+parser.add_argument('--restore_file', default='g_best', \
+                    help="name of the file in --test_dir containing weights to load")
 
 
 def generate(model, params, dataloader, norm_df, test_dir):
@@ -45,16 +48,20 @@ def generate(model, params, dataloader, norm_df, test_dir):
     with tqdm(total=len(dataloader)) as t:
         for i, (conditions, properties) in enumerate(dataloader):
 
-            noise, conditions, properties = Variable(torch.randn(conditions.shape[1], params.z_dim)), Variable(conditions[0]), Variable(properties[0])
+            noise, conditions, properties = Variable(torch.randn(conditions.shape[1], \
+                                                params.z_dim)), Variable(conditions[0]), \
+                                                Variable(properties[0])
 
             if params.cuda:
-                noise, conditions, properties = noise.cuda(non_blocking=True), conditions.cuda(non_blocking=True), properties.cuda(non_blocking=True)
+                noise, conditions, properties = noise.cuda(non_blocking=True), \
+                    conditions.cuda(non_blocking=True), properties.cuda(non_blocking=True)
 
             true_mag, obs_mag = properties[:,:3], properties[:,3:]
 
             out = model(noise, conditions, true_mag).cpu().detach().numpy()
 
-            out = np.array([(out[:,i] * norm_df.iloc[i+3][1]) + norm_df.iloc[i+3][0] for i in range(3)])
+            out = np.array([(out[:,i] * norm_df.iloc[i+3][1]) + \
+                            norm_df.iloc[i+3][0] for i in range(3)])
             out = np.swapaxes(out,0,1)
 
             ri_o.append(out[:,0]-out[:,1])
@@ -87,14 +94,16 @@ def generate(model, params, dataloader, norm_df, test_dir):
     plt.colorbar()
     plt.savefig(os.path.join(test_dir,'ri_iz_o.png'))
 
-    logging.info("- Eval metrics: r-i_ob med={}, std={}; i-z_ob med={}, std={}".format(np.median(ri_o), np.std(ri_o), np.median(iz_o), np.std(iz_o),))
+    logging.info("- Eval metrics: r-i_ob med={}, std={}; i-z_ob med={}, \
+        std={}".format(np.median(ri_o), np.std(ri_o), np.median(iz_o), np.std(iz_o)))
     return 
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     json_path = os.path.join(args.test_dir, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
+    assert os.path.isfile(json_path), "No json configuration file \
+                                       found at {}".format(json_path)
     params = utils.Params(json_path)
 
     params.cuda = torch.cuda.is_available()
@@ -107,9 +116,11 @@ if __name__ == '__main__':
 
     logging.info("Loading the dataset...")
 
-    norm_df = pd.read_pickle(os.path.join(args.data_dir,'preprocessed_onlytrain/normalization.pkl'))
+    norm_df = pd.read_pickle(os.path.join(args.data_dir,\
+                                          'preprocessed_onlytrain/normalization.pkl'))
 
-    dl = DataLoader(FD("train", params.batch_size), batch_size=1, shuffle=True, num_workers=params.num_workers, pin_memory=params.cuda)
+    dl = DataLoader(FD("train", params.batch_size), batch_size=1, shuffle=True, \
+                    num_workers=params.num_workers, pin_memory=params.cuda)
 
     logging.info("- done.")
 
@@ -118,7 +129,8 @@ if __name__ == '__main__':
     logging.info("Starting evaluation...")
 
     # Load the model's saved parameters post-training
-    utils.load_checkpoint(os.path.join(args.test_dir, args.restore_file + '.pth.tar'), model)
+    utils.load_checkpoint(os.path.join(args.test_dir, args.restore_file + '.pth.tar'),\
+                          model)
 
     generate(model, params, dl, norm_df, args.test_dir)
 
