@@ -197,7 +197,7 @@ def train(g_model: cgan.Generator, d_model: cgan.Discriminator,
         d_optimizer (optim.Adam): the optimizer for the Discriminator
             model
         dataloader (DataLoader): the training data split up into batches
-        metrics (dict)): the metrics to evaluate the model on
+        metrics (dict): the metrics to evaluate the model on
         params (utils.Params): the hyperparameters used for training
 
     Returns:
@@ -261,20 +261,27 @@ def train(g_model: cgan.Generator, d_model: cgan.Discriminator,
     return metrics_mean
 
 
-########################################################################
-###############################################################################
-def evaluate(g_model, d_model, metrics, halves, val_cond, val_true, val_obs, params):
+def evaluate(g_model: cgan.Generator, d_model: cgan.Discriminator,
+             metrics: dict, halves: torch.tensor, val_cond: torch.tensor,
+             val_true: torch.tensor, val_obs: torch.tensor,
+             params: utils.Params) -> dict:
     """Evaluate the metrics to specify when to save out the weights.
     
     Args:
-        g_model: the Generator model
-        d_model: the Discriminator model
-        metrics: the metrics to evaluate the model on
-        halves: tensor filled with the scalar value 0.5
-        val_cond: the conditional layer for the validation dataset
-        val_true: the ground truth true magnitudes for the validation dataset
-        val_obs: the ground truth observed magnitudes for the validation dataset
-        params: the hyperparameters
+        g_model (cgan.Generator): the Generator model
+        d_model (cgan.Discriminator): the Discriminator model
+        metrics (dict): the metrics to evaluate the model on
+        halves (torch.tensor): tensor filled with the scalar value 0.5
+        val_cond (torch.tensor): the conditional layer for the
+            validation dataset
+        val_true (torch.tensor): the ground truth true magnitudes for
+            the validation dataset
+        val_obs (torch.tensor): the ground truth observed magnitudes for
+            the validation dataset
+        params (utils.Params): the hyperparameters
+
+    Returns:
+        (dict): a dictionary of the mean of each metric.
     """
     g_model.eval()
 
@@ -291,59 +298,78 @@ def evaluate(g_model, d_model, metrics, halves, val_cond, val_true, val_obs, par
     metrics_mean = {"d_MSE": metrics["MSE"](d_out, halves),
                     "d_Var": metrics["VAR"](d_out),
                     "MSE": metrics["MSE"](g_out.cpu(), val_obs),
-                    "main_metric": metrics["main"](d_out, halves, val_cond.shape[0])}
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
+                    "main_metric": metrics["main"](
+                        d_out, halves, val_cond.shape[0])}
+    metrics_string = " ; ".join(
+        f"{k}: {v:05.3f}" for k, v in metrics_mean.items())
     logging.info("- Eval metrics : " + metrics_string)
+
     return metrics_mean
 
 
-def make_plot(p, name, y, test_dir):
+def make_plot(p: list[float], name: str, y: str, test_dir: str) -> None:
     """Plot and save metrics as a function of epochs.
 
     Args:
-        p: metric to plot
-        name: name to save plot to
-        y: y-axis label name
-        test_dir: the directory to save the plots to
+        p (list[float]): metric to plot
+        name (str): name to save plot to
+        y (str): y-axis label name
+        test_dir (str): the directory to save the plots to
     """
     plt.figure()
     plt.plot(p)
     plt.xlabel("Epochs")
     plt.ylabel(y)
     if name=="train_MSEs" or name=="val_MSEs":
-        plt.ylim(0,5)
-    plt.savefig(os.path.join(test_dir, name+".png"))
+        plt.ylim(0, 5)
+    plt.savefig(os.path.join(test_dir, name + ".png"))
 
+    return None
 
-def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond,
-                       val_true, val_obs, g_optimizer, d_optimizer, metrics,
-                       params, test_dir, gen_restore_file=None, disc_restore_file=None):
+def train_and_evaluate(g_model: cgan.Generator, d_model: cgan.Discriminator,
+                       train_dataloader: DataLoader, halves: torch.tensor,
+                       val_cond: torch.tensor, val_true: torch.tensor,
+                       val_obs: torch.tensor, g_optimizer: optim.Adam,
+                       d_optimizer: optim.Adam, metrics: dict,
+                       params: utils.Params, test_dir: str,
+                       gen_restore_file: Optional[str] = None,
+                       disc_restore_file: Optional[str] = None) -> None:
     """Train the model, evaluate the metrics, and save some plots.
 
     Args:
-        g_model: the Generator model
-        d_model: the Discriminator model
-        train_dataloader: the training data split up into batches
-        halves: tensor filled with the scalar value 0.5
-        val_cond: the conditional layer for the validation dataset
-        val_true: the ground truth true magnitudes for the validation dataset
-        val_obs: the ground truth observed magnitudes for the validation dataset
-        g_optimizer: the optimizer for the Generator model
-        d_optimizer: the optimizer for the Discriminator model
-        metrics: the metrics to evaluate the model on
-        params: the hyperparameters used for training
-        test_dir: the directory containing the testing parameters
-        gen_restore_file: file containing Generator parameters to load and continue training
-        disc_restore_file: file containing Discriminator parameters to load and continue training
+        g_model (cgan.Generator): the Generator model
+        d_model (cgan.Discriminator): the Discriminator model
+        train_dataloader (DataLoader): the training data split up into
+            batches
+        halves (torch.tensor): tensor filled with the scalar value 0.5
+        val_cond (torch.tensor): the conditional layer for the
+            validation dataset
+        val_true (torch.tensor): the ground truth true magnitudes for
+            the validation dataset
+        val_obs (torch.tensor): the ground truth observed magnitudes for
+            the validation dataset
+        g_optimizer (optim.Adam): the optimizer for the Generator model
+        d_optimizer (optim.Adam): the optimizer for the Discriminator
+            model
+        metrics (dict): the metrics to evaluate the model on
+        params (utils.Params): the hyperparameters used for training
+        test_dir (str): the directory containing the testing parameters
+        gen_restore_file (str): file containing Generator parameters to
+            load and continue training
+        disc_restore_file (str): file containing Discriminator
+            parameters to load and continue training
     """
     if gen_restore_file is not None:
-        gen_restore_path = os.path.join(test_dir, gen_restore_file + ".pth.tar")
+        gen_restore_path = os.path.join(
+            test_dir, gen_restore_file + ".pth.tar")
         logging.info(f"Restoring generator parameters from {gen_restore_path}")
         utils.load_checkpoint(gen_restore_path, g_model, g_optimizer)
 
     if disc_restore_file is not None:
-        disc_restore_path = os.path.join(test_dir, disc_restore_file + ".pth.tar")
-        logging.info(f"Restoring discriminator parameters from {disc_restore_path}")
+        disc_restore_path = os.path.join(
+            test_dir, disc_restore_file + ".pth.tar")
+        logging.info(
+            f"Restoring discriminator parameters from {disc_restore_path}")
         utils.load_checkpoint(disc_restore_path, d_model, d_optimizer)
 
     best_val = 9999999999.9
@@ -376,18 +402,21 @@ def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond,
             val_main = val_metrics["main_metric"]
             is_best = val_main <= best_val
 
-            utils.save_checkpoint({"epoch": epoch + 1, "state_dict": g_model.state_dict(),
-                                   "optim_dict": g_optimizer.state_dict()}, is_best=is_best,
-                                  checkpoint=test_dir, model="gen")
-            utils.save_checkpoint({"epoch": epoch + 1, "state_dict": d_model.state_dict(),
-                                   "optim_dict": d_optimizer.state_dict()}, is_best=is_best,
-                                  checkpoint=test_dir, model="disc")
+            utils.save_checkpoint(
+                {"epoch": epoch + 1, "state_dict": g_model.state_dict(),
+                 "optim_dict": g_optimizer.state_dict()},
+                is_best=is_best, checkpoint=test_dir, model="gen")
+            utils.save_checkpoint(
+                {"epoch": epoch + 1, "state_dict": d_model.state_dict(),
+                 "optim_dict": d_optimizer.state_dict()},
+                is_best=is_best, checkpoint=test_dir, model="disc")
 
             if is_best:
                 logging.info("- Found new best validation metric")
                 best_val = val_main
 
-                best_json_path = os.path.join(test_dir, "metrics_val_best.json")
+                best_json_path = os.path.join(
+                    test_dir, "metrics_val_best.json")
                 utils.save_dict_to_json(val_metrics, best_json_path)
 
         last_json_path = os.path.join(test_dir, "metrics_val_last.json")
@@ -399,14 +428,17 @@ def train_and_evaluate(g_model, d_model, train_dataloader, halves, val_cond,
     make_plot(d_MSEs, "d_MSEs", "MSE(disc. out, 0.5)", test_dir)
     make_plot(d_Vars, "d_Vars", "Var(disc. out)", test_dir)
     make_plot(val_MSEs, "val_MSEs", "Val MSE(gen. out, truth)", test_dir)
-    make_plot(main_metrics, "main_metrics", "N*MSE(disc. out, 0.5)/(N+1) + Var(disc. out)/(N+1)",
-              test_dir)
+    make_plot(main_metrics, "main_metrics",
+              "N*MSE(disc. out, 0.5)/(N+1) + Var(disc. out)/(N+1)", test_dir)
+
+    return None
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
     json_path = os.path.join(args.test_dir, "params.json")
-    assert os.path.isfile(json_path), f"No json configuration file found at {json_path}"
+    assert os.path.isfile(json_path), (
+        f"No json configuration file found at {json_path}")
     params = utils.Params(json_path)
 
     # Check whether a GPU is available
@@ -421,33 +453,41 @@ if __name__ == "__main__":
 
     logging.info("Loading the datasets...")
 
-    # The batch size is set to 1 here because the dataloader already splits the data up into batches
-    train_dl = DataLoader(FD("train", params.batch_size), batch_size=1, shuffle=True,
-                          num_workers=params.num_workers, pin_memory=params.cuda)
-    val_dl = DataLoader(FD("val", 10000), batch_size=1, shuffle=False,
-                        num_workers=params.num_workers, pin_memory=params.cuda) 
+    # The batch size is set to 1 here because the dataloader already
+    # splits the data up into batches
+    train_dl = DataLoader(
+        FD("train", params.batch_size), batch_size=1, shuffle=True,
+        num_workers=params.num_workers, pin_memory=params.cuda)
+    val_dl = DataLoader(
+        FD("val", 10000), batch_size=1, shuffle=False,
+        num_workers=params.num_workers, pin_memory=params.cuda) 
     val_cond, val_out = next(iter(val_dl))
     val_out, val_cond = Variable(val_out[0]), Variable(val_cond[0])
-    val_true, val_obs = val_out[:, :3].contiguous(), val_out[:, 3:].contiguous()
+    val_true, val_obs = (val_out[:, :3].contiguous(),
+                         val_out[:, 3:].contiguous())
     del val_out, val_dl
     halves = Variable(torch.ones(val_cond.shape[0]) * 0.5)
 
     logging.info("- done.")
 
     # Load the Generator and Discriminator
-    g_model = cgan.Generator(params).cuda() if params.cuda else cgan.Generator(params)
-    d_model = cgan.Discriminator(params).cuda() if params.cuda else cgan.Discriminator(params)
+    g_model = cgan.Generator(params).cuda() if params.cuda else (
+        cgan.Generator(params))
+    d_model = cgan.Discriminator(params).cuda() if params.cuda else (
+        cgan.Discriminator(params))
     
     logging.info(g_model)
     logging.info(d_model)
-    g_optimizer = optim.Adam(g_model.parameters(), lr=params.learning_rate, betas=(params.beta1, 0.999))
-    d_optimizer = optim.Adam(d_model.parameters(), lr=params.learning_rate, betas=(params.beta1, 0.999))
+    g_optimizer = optim.Adam(g_model.parameters(), lr=params.learning_rate,
+                             betas=(params.beta1, 0.999))
+    d_optimizer = optim.Adam(d_model.parameters(), lr=params.learning_rate,
+                             betas=(params.beta1, 0.999))
 
     metrics = cgan.metrics
 
-    logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
+    logging.info(f"Starting training for {params.num_epochs} epoch(s)")
     train_and_evaluate(g_model, d_model, train_dl, halves, val_cond, val_true,
-                       val_obs, g_optimizer, d_optimizer, metrics, params, args.test_dir,
-                       args.gen_restore_file, args.disc_restore_file)
-
+                       val_obs, g_optimizer, d_optimizer, metrics, params,
+                       args.test_dir, args.gen_restore_file,
+                       args.disc_restore_file)
 

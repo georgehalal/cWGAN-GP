@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+cWGAN.py
+
+Contains the generator and discriminator models and the metrics used
+to evaluate them.
+
+Author: George Halal
+Email: halalgeorge@gmail.com
+"""
+
+
+__author__ = "George Halal"
+__email__ = "halalgeorge@gmail.com"
+
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -145,7 +161,7 @@ def main_metric(out, truth, N):
         truth: ground truth to compare it to
         N: number of samples
     """
-    return N*MSE(out, truth)/(N+1) + VAR(out)/(N+1)
+    return N * MSE(out, truth) / (N+1) + VAR(out) / (N+1)
 
 
 metrics = {
