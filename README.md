@@ -1,4 +1,4 @@
-# cWGAN-GP
+# Conditional Wasserstein Generative Adversarial Network with Gradient Penalty (cWGAN-GP)
 ## Introduction
 A considerable amount of data from galaxy surveys collected by telescopes is thrown away due to subpar observing conditions such as blurriness and noise levels to achieve statistical measurements of high accuracy. Therefore, [Balrog](https://academic.oup.com/mnras/article/457/1/786/988891), a Python-based simulation package, has been developed for minimizing the amount of discarded data. It injects fake simulated galaxies, created by combining noise with real galaxies taken from deep-field surveys, into real astronomical images from wide-field surveys to accurately characterize measurement biases. This is crucial for the final Dark Energy Survey (DES) and first Legacy Survey of Space and Time (LSST) analyses.
 
